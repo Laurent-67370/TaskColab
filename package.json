@@ -121,5 +121,9 @@
     "> 0.5%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "overrides": {
+    "@typescript-eslint/parser": "$@typescript-eslint/parser",
+    "@typescript-eslint/eslint-plugin": "$@typescript-eslint/eslint-plugin"
+  }
 }
