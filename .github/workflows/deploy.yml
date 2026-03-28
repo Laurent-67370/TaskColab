@@ -1,4 +1,4 @@
-name: Deploy to o2switch
+name: Deploy to o2switch Node.js
 
 on:
   push:
@@ -17,21 +17,36 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
 
       - name: 📦 Install dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm ci
 
       - name: 🔨 Build Next.js application
         run: npm run build
         env:
           NODE_ENV: production
+
+      - name: 📋 Prepare deployment package
+        run: |
+          mkdir -p deploy
+          # Copy built files
+          cp -r .next deploy/
+          cp -r public deploy/ 2>/dev/null || true
+          cp -r app deploy/ 2>/dev/null || true
+          cp -r components deploy/ 2>/dev/null || true
+          cp -r lib deploy/ 2>/dev/null || true
+          cp -r hooks deploy/ 2>/dev/null || true
+          cp -r types deploy/ 2>/dev/null || true
+          # Copy config files
+          cp package.json deploy/
+          cp package-lock.json deploy/ 2>/dev/null || true
+          cp next.config.js deploy/
+          cp next-env.d.ts deploy/
+          cp tsconfig.json deploy/
+          cp tailwind.config.ts deploy/
+          cp postcss.config.js deploy/
+          cp components.json deploy/
+          cp .env.example deploy/ 2>/dev/null || true
 
       - name: 📤 Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
@@ -39,23 +54,5 @@ jobs:
           server: orme.o2switch.net
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: .next/
-          server-dir: /taskcolab.lhusser.fr/
-
-      - name: 📤 Upload public files
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
-        with:
-          server: orme.o2switch.net
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: public/
-          server-dir: /taskcolab.lhusser.fr/
-
-      - name: 📤 Upload package.json
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
-        with:
-          server: orme.o2switch.net
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: package.json
+          local-dir: deploy/
           server-dir: /taskcolab.lhusser.fr/
